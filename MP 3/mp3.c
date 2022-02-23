@@ -8,7 +8,7 @@
     that was taken into account in this program as well.
 
   Matthew Shuyu Wei
-  partners: mswei2, bmaedge2
+  mswei2
   Febuary 12, 2022
 
 */

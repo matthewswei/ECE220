@@ -94,7 +94,6 @@ GET_NEXT
 	ADD R1,R1,#1		; point to next character in string
 	BRnzp COUNTLOOP		; go to start of counting loop
 ;
-;Partners: mswei2, bmaedge2
 ;
 ; The code below is written so that it will print out a hexidecimal number representing
 ; how many occurrances a letter has shown. @ will represent non-alphabet values and A-Z
