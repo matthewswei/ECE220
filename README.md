@@ -9,7 +9,7 @@ This repository is created solely for academic use and reference. Any kind of pl
 ## MP Grades:
 
 	MP 1: 100/100
-	MP 2:
+	MP 2:  93/100
 	MP 3:
 	MP 4:
 	MP 5:
