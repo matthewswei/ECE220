@@ -26,7 +26,7 @@
             boards are the same or not.
 
     Matthew Shuyu Wei
-    partners: mswei2, bmaedge2
+    mswei2
     March 9, 2022
 */
 
