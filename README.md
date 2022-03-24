@@ -20,3 +20,5 @@ This repository is created solely for academic use and reference. Any kind of pl
 	MP 10:
 	MP 11:
 	MP 12:
+
+Grade listed above is the raw MP grade. Actual grade is raw grade +10 pts.
