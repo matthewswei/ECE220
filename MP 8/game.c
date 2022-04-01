@@ -52,7 +52,7 @@
       destroy_game, rand_new_tile, print_game, and process_turn are all given so no alterations were done.
     
     Matthew Shuyu Wei
-    partners: mswei2, bmaedge2
+    mswei2
     March 31, 2022
 */
 
