@@ -1,3 +1,61 @@
+/*
+    This code contains functions for main.c. The overall functino of the program is to create the popular 2048 game in which there is some MxN board
+    where an individual tile is created randomly (usually of value 2 or 4). The player has 4 moves (up,down,left,right) to make. Each move will
+    shift the board towards that direction. If two tiles are the same value and they meet, then the tiles merge and their values combine. Only
+    two tiles can merge together at once, so three or more tiles can't combine. Since the tiles start with 2, each combination is an exponential 
+    power of 2 (2,4,8,16,32,64,128,256,512,1024,2048). The goal is to combine the tiles until the final value of 2048 is reached. The list of functions
+    is listed below:
+        1. make_game
+        2. remake_game
+        3. get_cell
+        4. move_w
+        5. move_s
+        6. move_a
+        7. move_d
+        8. legal_move_check
+        9. destroy_game
+        10. rand_new_tile
+        11. print_game
+        12. process_turn
+
+    Explanations for each function and their roles are detailed in functions.
+    
+    Algorithms used for functions:
+        make_game
+            Initialized variables in game struct. For loop was used to assign every value inside the board to -1 initially.
+        remake_game
+            Same exact process as in make_game, just changing names of variables.
+        get_cell
+            Simply if statement to check that cols and rows are within the bounds of the board. If they are, then it returns the pointer to
+            said row and column location using an equation to convert 2d points to a 1d array.
+        move_w
+            Alorgithm starts off with two for loops, one to represent rows and one to represent columns. It goes through the array going down each
+            column one by one to find a non-empty cell. If a non-empty cell is found, then another loop will iterate through that specific column
+            to find the closest empty cell to the top of the column. Once found, if will shift that cell there and replace the cell's original spot
+            with an empty cell. Then, it will check the cell that just moved with the cell directly above it. If they are equal, then they will combine
+            and the score will update. Throughout this process, there is a value called moved to keep track if any moving was done. If moving was detected,
+            it will return 1. Elsewise it will return 0. Also since no more than two cells can combine together at a time, another variable was added also
+            to keep check of the last merged column to avoid combining multiple cells.
+        move_s
+            Exact same algorithm as move_w except it was changed so that the loops iterate from each column beginning from the bottom of the column instead
+            of the top. Variables were also changed accordingly to accommodate this change.
+        move_a
+            Exact same algorithm as move_w except it was changed so that the loops iterate through each row instead of column starting from the left and
+            moving to the right. Variables were also changed accordingly to accommodate this change.
+        move_d
+            Exact same algorithm as move_a except it was changed so that the loops iterate from each row beginning from the left of the row instead of the
+            right. Variables were also changed accordingly to accommodate this change.
+        legal_move_check
+            Simple for loop to check if every spot on the board is filled yet. Then if statements are used to check the neighbors of the cell to
+            ensure no moves can be combined.
+    
+      destroy_game, rand_new_tile, print_game, and process_turn are all given so no alterations were done.
+    
+    Matthew Shuyu Wei
+    partners: mswei2, bmaedge2
+    March 31, 2022
+*/
+
 #include "game.h"
 
 
@@ -12,15 +70,12 @@ game * make_game(int rows, int cols)
     //Dynamically allocate memory for game and cells (DO NOT modify this)
     game * mygame = malloc(sizeof(game));
     mygame->cells = malloc(rows*cols*sizeof(cell));
-
-    //YOUR CODE STARTS HERE:  Initialize all other variables in game struct
     mygame->rows = rows;
     mygame->cols = cols;
     mygame->score = 0;
     for (int i = 0; i<rows*cols; i++) {
         mygame->cells[i] = -1;
     }
-
     return mygame;
 }
 
@@ -35,15 +90,12 @@ void remake_game(game ** _cur_game_ptr,int new_rows,int new_cols)
 	 then dynamically allocates memory for cells in new game.  DO NOT MODIFY.*/
 	free((*_cur_game_ptr)->cells);
 	(*_cur_game_ptr)->cells = malloc(new_rows*new_cols*sizeof(cell));
-
-	 //YOUR CODE STARTS HERE:  Re-initialize all other variables in game struct
     (*_cur_game_ptr)->rows = new_rows;
     (*_cur_game_ptr)->cols = new_cols;
     (*_cur_game_ptr)->score = 0;
     for (int i = 0; i<new_rows*new_cols; i++) {
         (*_cur_game_ptr)->cells[i] = -1;
     }
-
 	return;	
 }
 
@@ -64,11 +116,9 @@ cell * get_cell(game * cur_game, int row, int col)
 	if the row and col coordinates do not exist.
 */
 {
-    //YOUR CODE STARTS HERE
     if (row>=0 && row<row*col && col>=0 && col<row*col) {
         return cur_game->cells + row*cur_game->cols + col;
     }
-
     return NULL;
 }
 
@@ -80,19 +130,20 @@ int move_w(game * cur_game)
    cell to change value, w is an invalid move and return 0. Otherwise, return 1. 
 */
 {
-    //YOUR CODE STARTS HERE
     int M = cur_game->rows;
     int N = cur_game->cols;
-    int moved = 0;
+    int moved = 0;      //Tracks if board was shifted
+
+    //Iterated through board
     for (int i = 0; i<N; i++) {
-        int comb_indicator = -1;
+        int comb_indicator = -1;    //Tracks last combined cell to avoid combining multiple ones
         for (int j = 0; j<M; j++) {
             int cur_index = j*N + i;
             if (cur_game->cells[cur_index]!=-1) {
-                int comb_index = j;
-                for (int k = 0; k<j; k++) {
+                int comb_index = j;             //Used as the variable for the new location of the current cell (look at line 149)
+                for (int k = 0; k<j; k++) {     //Loops through current column starting from top to find empty cell
                     int index = k*N + i;
-                    if (cur_game->cells[index]==-1) {
+                    if (cur_game->cells[index]==-1) {   //Shifts cell to empty cell if empty cell was detected
                         cur_game->cells[index] = cur_game->cells[cur_index];
                         cur_game->cells[cur_index] = -1;
                         comb_index = k;
@@ -100,10 +151,10 @@ int move_w(game * cur_game)
                         break;
                     }
                 }
-                if (comb_index-1 != comb_indicator) {
-                    int prev_index = (comb_index-1)*N + i;
-                    int next_index = comb_index*N + i;
-                    if (cur_game->cells[prev_index]==cur_game->cells[next_index]) {
+                if (comb_index-1 != comb_indicator) {   //Combines cells if top cell is equal to current cell
+                    int prev_index = (comb_index-1)*N + i;  //Gets top cell
+                    int next_index = comb_index*N + i;      //Gets the location of the cell that has been shifted
+                    if (cur_game->cells[prev_index]==cur_game->cells[next_index]) {   //Updates board and score if equal
                         cur_game->cells[prev_index]*=2;
                         cur_game->cells[next_index] = -1;
                         comb_indicator = comb_index - 1;
@@ -122,7 +173,6 @@ int move_w(game * cur_game)
 
 int move_s(game * cur_game) //slide down
 {
-    //YOUR CODE STARTS HERE
     int M = cur_game->rows;
     int N = cur_game->cols;
     int moved = 0;
@@ -164,7 +214,6 @@ int move_s(game * cur_game) //slide down
 
 int move_a(game * cur_game) //slide left
 {
-    //YOUR CODE STARTS HERE
     int M = cur_game->cols;
     int N = cur_game->rows;
     int moved = 0;
@@ -175,7 +224,7 @@ int move_a(game * cur_game) //slide left
             if (cur_game->cells[cur_index]!=-1) {
                 int comb_index = j;
                 for (int k = 0; k<j; k++) {
-                    int index = i*N + k;
+                    int index = i*M + k;
                     if (cur_game->cells[index]==-1) {
                         cur_game->cells[index] = cur_game->cells[cur_index];
                         cur_game->cells[cur_index] = -1;
@@ -185,8 +234,8 @@ int move_a(game * cur_game) //slide left
                     }
                 }
                 if (comb_index-1 != comb_indicator) {
-                    int prev_index = i*N + comb_index-1;
-                    int next_index = i*N + comb_index;
+                    int prev_index = i*M + comb_index-1;
+                    int next_index = i*M + comb_index;
                     if (cur_game->cells[prev_index]==cur_game->cells[next_index]) {
                         cur_game->cells[prev_index]*=2;
                         cur_game->cells[next_index] = -1;
@@ -205,7 +254,6 @@ int move_a(game * cur_game) //slide left
 };
 
 int move_d(game * cur_game){ //slide to the right
-    //YOUR CODE STARTS HERE
     int M = cur_game->cols;
     int N = cur_game->rows;
     int moved = 0;
@@ -216,7 +264,7 @@ int move_d(game * cur_game){ //slide to the right
             if (cur_game->cells[cur_index]!=-1) {
                 int comb_index = j;
                 for (int k = M-1; k>j; k--) {
-                    int index = i*N + k;
+                    int index = i*M + k;
                     if (cur_game->cells[index]==-1) {
                         cur_game->cells[index] = cur_game->cells[cur_index];
                         cur_game->cells[cur_index] = -1;
@@ -226,8 +274,8 @@ int move_d(game * cur_game){ //slide to the right
                     }
                 }
                 if (comb_index+1 != comb_indicator) {
-                    int prev_index = i*N + comb_index+1;
-                    int next_index = i*N + comb_index;
+                    int prev_index = i*M + comb_index+1;
+                    int next_index = i*M + comb_index;
                     if (cur_game->cells[prev_index]==cur_game->cells[next_index]) {
                         cur_game->cells[prev_index]*=2;
                         cur_game->cells[next_index] = -1;
@@ -251,14 +299,25 @@ int legal_move_check(game * cur_game)
 	Return 1 if there are possible legal moves, 0 if there are none.
  */
 {
-    //YOUR CODE STARTS HERE
     int col = cur_game->cols;
     int row = cur_game->rows; 
 
+    //Iterates through board
     for (int i = 0; i<row; i++) {
         for (int j = 0; j<col; j++) {
             int index = i*col + j;
+
+            //Checks if cell is empty
             if (cur_game->cells[index]==-1) {
+                return 1;
+            }
+
+            //Checks neighbors of cell
+            int up = (i-1)*col + j;
+            int down = (i+1)*col + j;
+            int left = i*col + j - 1;
+            int right = i*col + j + 1;
+            if (cur_game->cells[index]==cur_game->cells[up] || cur_game->cells[index]==cur_game->cells[down] || cur_game->cells[index]==cur_game->cells[left] || cur_game->cells[index]==cur_game->cells[right]) {
                 return 1;
             }
         }
