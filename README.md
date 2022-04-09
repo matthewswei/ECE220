@@ -12,8 +12,8 @@ This repository is created solely for academic use and reference. Any kind of pl
 	MP 2:  93/100
 	MP 3: 100/100
 	MP 4:  87/100
-	MP 5:
-	MP 6:
+	MP 5:  85/100
+	MP 6: 100/100
 	MP 7:
 	MP 8:
 	MP 9:
