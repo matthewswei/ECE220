@@ -1,3 +1,69 @@
+/*  
+    This code contains functions used in main.c. The code below contains functions used for a tree data structure.
+    The tree is used to represent a floorplan model which has blocks or areas separated horizontally or vertically.
+    Leaf nodes are used to represent each individual block and nodes in between are used to represent if a block is
+    horizontal or vertical. Drawing out the diagram using the tree will give a model of the floor plan represented.
+    The program also contains other various functions, including functions to change the blocks orientations and a
+    function to return the tree represented in postfix expression. A list of functions is given below:
+        1. init_slicing_tree
+        2. is_leaf
+        3. is_internal
+        4. is_in_subtree
+        5. rotate
+        6. recut
+        7. swap_module
+        8. swap_topology
+        9. get_expression
+        10. postfix_traversal
+        11. get_total_resource
+    
+    Explanations for each function and their inputs, outputs, and effects are detailed with functions.
+
+    Algorithms used for functions:
+        init_slicing_tree
+          First the right node is created and initialized with neccessary values. Then it creates and initializes the left node.
+          After that, it recursivley calls itself so a right and left node will always be created together. However, it needs to
+          signal an end, so an if statement is used after the right node is created to check if the left node created will be the
+          final value or not, meaning if it should be initalized as a leaf node or an interior node.
+        is_leaf
+          Simple if statement to check if it is a leaf node. If both right and left nodes of module are NULL, then it
+          is a leaf node and returns true.
+        is_internal
+          Similar to is_leaf function except it checks if the right or left nodes aren't equal to NULL. If they aren't,
+          then that means its not a leaf node and therefor an internal node.
+        is_in_subtree
+          While loop to iterate upwards. Checks if node a is equal to node b. If not, b is set equal to its parent and
+          it continues to check. Based on how a tree is ordered, node b will eventually have to equal a using this method
+          if b is inside the subtree. If not, b is not inside subtree a.
+        rotate
+          Rotate simply switches the height and width. Simple setter statements are used to swap their values.
+        recut
+          Similar to rotate except cutline values are switched. Simple if statements are used to check their values and swap
+          them to the other value accordingly.
+        swap_module
+          Similar to previous two functions. Temporary variable is used to hold current value of one module and setter statements
+          are used to swap.
+        swap_topology
+          Swapping topology wants to swap two subtrees. Since the root of the subtree already has its children connected, the only
+          thing needed is to swap the parents and the parent's pointer node to the swapped subtree. First it goes to the parent node
+          and checks if the subtree root is the left or right. Then it swaps the left or right value with the other subtree node.
+          Afterwards the subtree's parents are changed to the other ones. This is done for both subtree roots.
+        get_expression
+          Prewritten code. Essentially just initiallizes the expression array.
+        postfix_traversal
+          Used algorithm given with assignment which states to first recursively traverse through the left nodes and then traverse
+          through the right nodes. Afterwards, check the values of the traversed node and store the value into the expression array.
+        get_total_resource
+          Recursion was used. First checks base case for NULL and then checks if the node is a leaf node. If it is, it returns the value
+          of the resource. Afterwards, it recursively calls itself for the left and right nodes, thereby traversing through the tree and
+          adding all the resources together.
+
+
+    Matthew Wei
+    mswei2
+    April 21, 2022
+*/
+
 #include "floorplan.h"
 
 // Global variables. The global variables will be effectice after the input has been parsed
@@ -13,16 +79,13 @@ module_t* modules;                                          // Array for modules
 void floorplan(const char file[]) {
   
   /*printf("\n********************************** MP11 **********************************\n");
-
   // Read the modules from the given input file.
   read_modules(file);
-
   // Initialize the slicing tree. You can replace the function init_slicing_tree with the function
   // challenge_init_slicing_tree if you accomplish the challenge implementation.
   node_t* root = init_slicing_tree(NULL, 0);
   int num_nodes = (num_modules << 1) - 1;
   printf("Initial slicing tree: Root=%p, num_nodes=%d, num_modules=%d\n", root, num_nodes, num_modules);
-
   // Obtain the expression of the initial slicing tree. 
   expression_unit_t* expression = (expression_unit_t*)calloc(num_nodes, sizeof(expression_unit_t));
   get_expression(root, num_nodes, expression);
@@ -32,13 +95,11 @@ void floorplan(const char file[]) {
   printf("Initial area: %.5e\n", area);
   draw_modules("init.png");
   free(expression);
-
   // Perform the optimization process.
   printf("Perform optimization...\n");
   area = optimize(root, num_nodes);
   pnt_modules();
   printf("Packing area = %.5e (has overlapped? %d (1:yes, 0:no))\n", area, is_overlapped());
-
   // Output your floorplan.
   printf("Draw floorplan to %s\n", outfile);
   draw_modules(outfile);
@@ -126,14 +187,24 @@ void swap_topology(node_t* a, node_t* b) {
   if(a->parent == NULL || b->parent == NULL) return;
   if(is_in_subtree(a, b) || is_in_subtree(b, a)) return;
   assert(a->parent != NULL && b->parent != NULL);
-  node_t* temp = a;
-  a->parent->left = b->parent->left;
-  a->parent->right = b->parent->right;
-  b->parent->left = temp->parent->left;
-  b->parent->right = temp->parent->right;
-  a->parent = b->parent;
-  b->parent = temp->parent;
+  node_t* parenta = a->parent;
+  node_t* parentb = b->parent;
 
+  //Checks which child node of parent module is located under
+  if (parenta->left==a) {
+    parenta->left = b;
+  } else {
+    parenta->right = b;
+  }
+  if (parentb->left==b) {
+    parentb->left = a;
+  } else {
+    parentb->right = a;
+  }  
+
+  //Swaps module's parents
+  a->parent = parentb;
+  b->parent = parenta;
 }
 
 // Procedure: get_expression
@@ -166,15 +237,19 @@ void get_expression(node_t* root, int N, expression_unit_t* expression) {
 // assign NULL to the corresponding module pointer.
 void postfix_traversal(node_t* ptr, int* nth, expression_unit_t* expression) {
   if(ptr == NULL) return;
-  while (ptr->module==NULL) {
-    ptr = ptr->left;
-  }
-  expression[*nth].module = ptr->module;
-  *nth+=1;
-  ptr = ptr->parent;
+
+  //Traverses through tree
+  postfix_traversal(ptr->left, nth, expression);
   postfix_traversal(ptr->right, nth, expression);
-  expression[*nth].cutline = ptr->cutline;
-  *nth+=1;
+
+  //Analyzes data and store it accordingly
+  if (ptr->module!=NULL) {
+    expression[*nth].module = ptr->module;
+    *nth+=1;
+  } else {
+    expression[*nth].cutline = ptr->cutline;
+    *nth+=1;
+  }
   return;
 }
 
@@ -182,14 +257,18 @@ void postfix_traversal(node_t* ptr, int* nth, expression_unit_t* expression) {
 // traverse through the tree and return the sum of all resource for each module
 int get_total_resource(node_t* ptr)
 {
-  if (ptr->module!=NULL) {
-    return ptr->module->resource + get_total_resource(ptr->left) + get_total_resource(ptr->right);
-  } else if (ptr->left!=NULL) {
-    return get_total_resource(ptr->left);
-  } else if (ptr->right!=NULL) {
-    return get_total_resource(ptr->right);
+  int sum = 0;
+
+  //Checks if value is present
+  if(ptr==NULL) {
+    return 0;
+  } else if (is_leaf_node(ptr)) {
+    return ptr->module->resource;
   }
-  return 0;
+
+  //Traverses through tree and returns sum of resources
+  sum = sum + get_total_resource(ptr->left) + get_total_resource(ptr->right);
+  return sum;
 }
 
 // Procedure: init_slicing_tree
@@ -221,6 +300,8 @@ int get_total_resource(node_t* ptr)
 //
 node_t* init_slicing_tree(node_t* par, int n) {
   assert(n >= 0 && n < num_modules);
+
+  //Checks if final module has been reached
   if (n==num_modules-1) {
     node_t* last = (node_t*)malloc(sizeof(node_t));
     last->cutline = UNDEFINED_CUTLINE;
@@ -230,16 +311,22 @@ node_t* init_slicing_tree(node_t* par, int n) {
     last->left = NULL;
     return last;
   }
+
+  //Creates left node
   node_t* left = (node_t*)malloc(sizeof(node_t));
   left->parent = par;
   left->cutline = V;
   left->module = NULL;
+
+  //Creates right node
   node_t* right = (node_t*)malloc(sizeof(node_t));
   right->parent = left;
   right->module = &modules[n];
   right->cutline = UNDEFINED_CUTLINE;
   right->left = NULL;
   right->right = NULL;
+
+  //Creates the next level of tree
   node_t* node = init_slicing_tree(left, n+1);
   left->left = node;
   left->right = right;
@@ -641,13 +728,10 @@ double optimize(node_t *root, int num_nodes) {
     
     // Generate the neighboring solution.
     for(i=0; i<MAX_NUM_RAND_STEPS; ++i) {
-
       copy_expression(next_expression, curr_expression, num_nodes);
-
       key = rand()%4;
       
       switch(key) {
-
         // Perform recut.
         case 0:
           do{
@@ -691,7 +775,6 @@ double optimize(node_t *root, int num_nodes) {
           } while (!is_valid_expression(next_expression, num_nodes));
         break;
       }
-
       // Evaluate the area.
       curr_area = packing(curr_expression, num_nodes);
       next_area = packing(next_expression, num_nodes);
@@ -706,7 +789,6 @@ double optimize(node_t *root, int num_nodes) {
     }
     temperature *= TEMPERATURE_DECREASING_RATE;
   }
-
   best_area = packing(best_expression, num_nodes);*/
 
   
@@ -719,8 +801,3 @@ double optimize(node_t *root, int num_nodes) {
 
   return best_area;
 }
-
-
-
-
-
