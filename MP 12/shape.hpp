@@ -11,7 +11,6 @@
 		3. Circle
 		4. Sphere
 		5. RectPrism
-
 		Functions in classes:
 			1. getName
 			2. getWidth
@@ -22,20 +21,20 @@
 			7. getVolume
 			8. operator +
 			9. operator -
-
 	Functions:
 		1. CreateShapes
 		2. MaxArea
 		3. MaxVolume
     
     Explanations for each function and class as well as their inputs, outputs, and effects are detailed in code below.
-
     Algorithms used for functions:
 		1. CreateShapes
 			Uses ifstream to access file. Afterwards, it stores the total number of shapes to use in a for loop to iterate through
-			the file. Then, it goes through each line and checks the shape in the file. A switch statement is used to determine
+			the file. Then, it goes through each line and checks the shape in the file. If statements are used to determine
 			which shape is detected and from their it stores the dimensions of the shape from the file into variables and creates the
-			shape. That new shape is then stored into the list which contains all the shapes in the file.
+			shape. That new shape is then stored into the list which contains all the shapes in the file. For rectangles specifically,
+			you have to check the varible type as well because it can take ints, float, or doubles. Additional if statements were
+			included to check the variable type and make the corresponding rectangle.
 		2. MaxArea
 			Since the parameter is a list of shapes, a loop is needed to iterate through the entire list to find the maximum area
 			value. A variable holds the current maximum value and an if statement inside the loop checks the current shapes area.
@@ -53,7 +52,6 @@
     Matthew Wei
     mswei2
     April 26, 2022
-
 */
 
 #ifndef SHAPE_H_
@@ -100,10 +98,10 @@ public:
 		  length_ = length;
 	}	
   	double getArea() const {
-		  return width_*length_;
+		  return (double)width_*length_;
 	}	
   	double getVolume() const {
-		  return 0;
+		  return 0.0;
 	}
 	Rectangle<T> operator + (const Rectangle<T>& rec) {
 		T w = width_ + rec.getWidth();
@@ -136,7 +134,7 @@ public:
 		  radius_ = radius;
 	}
   	double getArea() const{
-		  return M_PI*radius*radius;
+		  return M_PI*radius_*radius_;
 	}
  	double getVolume() const{
 		 return 0;
@@ -201,7 +199,7 @@ public:
 		return width_*length_*height_;
 	}
 	double getArea() const {
-		return 2*((width_*length_) + (width_*height_) * (length_*height_));
+		return 2*((width_*length_) + (width_*height_) + (length_*height_));
 	}
 	RectPrism operator + (const RectPrism& rectp){
 		double w = width_ + rectp.getWidth();
@@ -234,6 +232,7 @@ private:
 // Return a vector of pointers that points to the objects 
 static list<Shape*> CreateShapes(char* file_name) {
 	int total;
+	double w,h,l,r;
 	list<Shape*> shapes;
 	Shape* shape;
 	ifstream file (file_name);
@@ -241,29 +240,26 @@ static list<Shape*> CreateShapes(char* file_name) {
 	for(int i = 0; i<total; i++) {
 		string name;
 		file>>name;
-		switch (name) {
-			case "Rectangle":
-				double w, l;
+		if (name=="Rectangle") {
+			if (sizeof(file.peek())==sizeof(int)) {
 				file>>w>>l;
-				shape = new Rectangle(w,l);
-				break;
-			case "Circle":
-				double r;
-				file>>r;
-				shape = new Circle(r);
-				break;
-			case "Sphere":
-				double r;
-				file>>r;
-				shape = new Sphere(r);
-				break;
-			case "RectPrism":
-				double w, l, h;
-				file>>w>>l>>h;
-				shape = new RectPrism(w,l,h);
-				break;
-			default:
-				break;
+				shape = new Rectangle<int>((int)w,(int)l);
+			} else if (sizeof(file.peek())==sizeof(double)) {
+				file>>w>>l;
+				shape = new Rectangle<double>(w,l);
+			} else if (sizeof(file.peek())==sizeof(float)) {
+				file>>w>>l;
+				shape = new Rectangle<float>((float)w,(float)l);
+			}
+		} else if(name=="Circle") {
+			file>>r;
+			shape = new Circle(r);
+		} else if(name=="Sphere") {
+			file>>r;
+			shape = new Sphere(r);
+		} else if(name=="RectPrism") {
+			file>>w>>l>>h;
+			shape = new RectPrism(w,l,h);
 		}
 		shapes.push_back(shape);
 	}
@@ -275,9 +271,10 @@ static list<Shape*> CreateShapes(char* file_name) {
 // return the max area
 static double MaxArea(list<Shape*> shapes){
 	double max_area = 0;
-	for (int i = 0; i<shapes.length(); i++) {
-		if (shapes[i]->getArea()>max_area) {
-			max_area = shapes[i]->getArea();
+	for (list<Shape*>::iterator it = shapes.begin(); it!=shapes.end(); it++) {
+		double area = (*it)->getArea();
+		if (area>max_area) {
+			max_area = area;
 		}
 	}
 	return max_area;
@@ -287,12 +284,12 @@ static double MaxArea(list<Shape*> shapes){
 // return the max volume
 static double MaxVolume(list<Shape*> shapes){
 	double max_volume = 0;
-	for (int i = 0; i<shapes.length(); i++) {
-		if (shapes[i]->getVolume()>max_volume) {
-			max_volume = shapes[i]->getVolume();
+	for (list<Shape*>::iterator it = shapes.begin(); it!=shapes.end(); it++) {
+		double volume = (*it)->getVolume();
+		if (volume>max_volume) {
+			max_volume = volume;
 		}
 	}
 	return max_volume;
 }
 #endif
-
