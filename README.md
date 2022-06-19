@@ -4,7 +4,7 @@ Computer Systems and Programming offered by UIUC. MP 1-2 are coded in LC-3 assem
 
 This repository is created solely for academic use and reference. Any kind of plagiarism is strictly prohibited and does not affliate with this repository.
 
-## Final Grade:
+## Final Grade: B+ :(
 
 ## MP Grades:
 
@@ -14,11 +14,11 @@ This repository is created solely for academic use and reference. Any kind of pl
 	MP 4:  87/100
 	MP 5:  85/100
 	MP 6: 100/100
-	MP 7:
-	MP 8:
-	MP 9:
-	MP 10:
-	MP 11:
-	MP 12:
-
-Grade listed above is the raw MP grade. Actual grade is raw grade +10 pts.
+	MP 7: 100/100
+	MP 8:  90/100
+	MP 9:  100/100
+	MP 10:  83/100
+	MP 11: 100/100
+	MP 12: 100/100
+	
+Grades were closed at end of semester so grades for MP 7-11 were lost. Numbers listed above are estimates. I remember MPs 8 and 10 had points taken off. MP 7, 9 , and 11 were above a 95 if not 100.
